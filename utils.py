@@ -90,4 +90,25 @@ class mlp_dataset(Dataset):
 
 
 
-
+def custom_split(features, labels, test_ratio = 0.15, print_progress = False,
+                 random_state = 42):
+    num_classes = np.unique(labels)
+    X_train, y_train = np.empty(shape = (0,len(features[0,:])), dtype = np.float64), np.array([], dtype=np.int64)
+    X_test, y_test = np.empty(shape = (0,len(features[0,:])), dtype = np.float64), np.array([], dtype=np.int64)
+    for class_label in num_classes:
+        indices = np.where(labels == class_label)[0]
+        num_test_samples = int(test_ratio*len(indices))
+        np.random.seed(random_state)
+        test_indices = np.random.choice(indices, replace = False,
+                                        size = num_test_samples)
+        train_indices = np.setdiff1d(indices, test_indices,
+                                     assume_unique = True)
+        X_train = np.concatenate((X_train, features[train_indices,:]), axis = 0)
+        X_test = np.concatenate((X_test, features[test_indices,:]), axis = 0)
+        y_train = np.concatenate((labels[train_indices], y_train))
+        y_test = np.concatenate((labels[test_indices], y_test))
+        if print_progress:
+            print(f"- Class {class_label}: Train|Test ---> {len(train_indices)}|{len(test_indices)}")
+    return X_train, X_test, y_train, y_test
+        
+        
